@@ -1,0 +1,383 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --font-family: 'Inter', -apple-system, sans-serif;
+  
+  --bg-app: #090a0f;
+  --bg-panel: rgba(20, 22, 32, 0.45);
+  --bg-input: rgba(255, 255, 255, 0.04);
+  
+  --text-main: #f0f2f5;
+  --text-muted: #8a8e9e;
+  
+  --accent-blue: #00d4ff;
+  --accent-red: #ff2a5f;
+  --accent-green: #00e676;
+  --accent-purple: #b054fc;
+  --accent-orange: #ffab00;
+
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-heavy: rgba(255, 255, 255, 0.15);
+  --border-glow: rgba(0, 212, 255, 0.3);
+  
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-family);
+  background: radial-gradient(circle at 50% 0%, #151828 0%, var(--bg-app) 100%);
+  color: var(--text-main);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  color: var(--text-main);
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+/* Global App Header */
+.global-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1.25rem;
+  background: rgba(10, 11, 16, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-color);
+  z-index: 100;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.header-titles h1 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  background: linear-gradient(90deg, #fff, var(--text-muted));
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.header-titles .subtitle {
+  color: var(--accent-blue);
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0;
+  margin-top: 0.1rem;
+}
+
+.global-actions {
+  display: flex;
+  gap: 0.5rem;
+  width: 200px;
+}
+
+.btn {
+  padding: 0.4rem 0.8rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.2s ease;
+  font-size: 0.75rem;
+  flex: 1;
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-play {
+  background: linear-gradient(135deg, var(--accent-blue), #007aff);
+  color: #fff;
+  box-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+}
+
+.btn-play:hover:not(:disabled) {
+  box-shadow: 0 0 15px rgba(0, 212, 255, 0.5);
+  transform: translateY(-1px);
+}
+
+.btn-play.active {
+  background: linear-gradient(135deg, var(--accent-orange), #ff6b00);
+  box-shadow: 0 0 10px rgba(255, 171, 0, 0.3);
+}
+
+.btn-reset {
+  background-color: transparent;
+  color: var(--text-main);
+  border: 1px solid var(--border-heavy);
+}
+
+.btn-reset:hover {
+  background-color: var(--bg-input);
+  border-color: var(--text-main);
+}
+
+/* Custom Range Sliders */
+input[type=range] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  background: transparent;
+}
+input[type=range]::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  height: 12px;
+  width: 12px;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+  margin-top: -4px;
+  box-shadow: 0 0 6px rgba(255,255,255,0.4);
+  transition: transform 0.1s;
+}
+input[type=range]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+input[type=range]::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 4px;
+  cursor: pointer;
+  background: var(--border-heavy);
+  border-radius: 2px;
+}
+input[type=range]:focus {
+  outline: none;
+}
+
+/* Dual Range Thumb Ghosting for Overlays */
+input[type=range].dual-thumb {
+  pointer-events: none;
+  background: transparent;
+}
+input[type=range].dual-thumb::-webkit-slider-runnable-track {
+  background: transparent; 
+}
+input[type=range].dual-thumb::-webkit-slider-thumb {
+  pointer-events: auto;
+}
+
+
+/* Main Comparison Layout for Scrolled Grid */
+.comparison-board {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  gap: 6px;
+  background-color: #040508; 
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 6px;
+}
+
+.simulation-instance {
+  background: var(--bg-panel);
+  display: flex;
+  flex-direction: column;
+  padding: 0.6rem;
+  gap: 0.5rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  position: relative;
+  flex: 1; 
+  min-width: 350px;
+  overflow: hidden;
+}
+
+/* Add a sleek ambient glow based on accent color using pseudo element */
+.simulation-instance::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: inherit; /* will be overridden inline */
+  opacity: 0.5;
+}
+
+.instance-header h2 {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-align: left;
+  padding-left: 0.2rem;
+  padding-bottom: 0.3rem;
+  margin-bottom: 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* Local Control Panel Header */
+.control-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  align-items: flex-start;
+  width: 100%;
+  flex: 1;
+}
+
+.controls-group {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.input-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-input);
+  padding: 0.3rem 0.4rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  transition: border-color 0.2s;
+}
+
+.input-group:hover {
+  border-color: var(--border-heavy);
+}
+
+.input-group label {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  white-space: normal;
+  line-height: 1.2;
+  padding-bottom: 0.2rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.input-group input[type="number"] {
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--text-main);
+  font-family: 'Inter', monospace;
+  font-size: 0.85rem;
+  outline: none;
+  font-weight: 700;
+}
+
+
+/* Instance Dashboard / Visualizations */
+.instance-dashboard {
+  margin-top: auto;
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.visualizer-card {
+  background: rgba(0,0,0,0.2);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.visualizer-card h3 {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-align: center;
+  margin-bottom: 0.4rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.chart-card {
+  flex: 1;
+}
+
+/* Chart Specifics */
+.chart-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  flex: 1;
+  padding-bottom: 20px; 
+}
+
+.press-chamber {
+  border: 1px dashed rgba(255,255,255,0.1);
+  background: rgba(0,0,0,0.1);
+  border-radius: var(--radius-sm);
+}
+
+.svg-wrapper {
+  background: rgba(255,255,255,0.02);
+  border-top: 1px solid var(--border-heavy);
+  border-bottom: 1px solid var(--border-heavy);
+  box-shadow: 0 0 10px rgba(0,0,0,0.5) inset;
+}
+
+svg {
+  width: 100%;
+  height: 100%;
+}
+
+.grid-line {
+  stroke: rgba(255,255,255,0.05);
+  stroke-width: 0.5;
+  stroke-dasharray: 2 2;
+}
+
+.temp-path {
+  stroke: #fff;
+  stroke-width: 1.5;
+  filter: drop-shadow(0 0 4px rgba(255,255,255,0.5));
+}
+
+.filled-path {
+  stroke: none;
+}
+
+.data-point {
+  fill: var(--bg-app);
+  stroke: #fff;
+  stroke-width: 0.5;
+}
+
+.x-axis-labels {
+  display: flex;
+  justify-content: space-between;
+  position: absolute;
+  bottom: -20px;
+  left: 0;
+  right: 0;
+  color: var(--text-muted);
+  font-size: 0.6rem;
+  font-weight: 600;
+}

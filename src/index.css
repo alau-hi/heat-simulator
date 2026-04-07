@@ -1,0 +1,54 @@
+:root {
+  --font-family: 'Inter', 'Roboto', sans-serif;
+  
+  /* Light Clinical Theme */
+  --bg-app: #f4f5f7;
+  --bg-panel: #ffffff;
+  --bg-input: #f0f2f5;
+  
+  --text-main: #1c1c1e;
+  --text-muted: #6e6e73;
+  
+  --platen-color: #d1d1d6;
+  --platen-hot: #ff3b30;
+  
+  --accent-blue: #007aff;
+  --accent-red: #ff3b30;
+  --accent-green: #34c759;
+
+  --border-color: #e5e5ea;
+  
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-family);
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+input, button {
+  font-family: inherit;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  color: var(--text-main);
+}
+
+.app-container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
