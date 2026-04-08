@@ -68,9 +68,21 @@ export function useHeatSimulation(initialParams) {
       }
 
       let nextT = [...currentT];
+      let mc = params.moistureContent || 0;
       for (let i = 1; i < N_NODES - 1; i++) {
         let temp = currentT[i];
-        nextT[i] = temp + effectiveAlpha * dt * (currentT[i+1] - 2 * temp + currentT[i-1]) / (dx * dx);
+        let apparentHeatMultiplier = 1;
+
+        if (mc > 0 && temp > 100 && temp < 130) {
+          // Smooth parabolic hump for apparent specific heat (latent heat of desorption + vaporization)
+          let tempRatio = (temp - 100) / 30; // Maps 100-130C block to 0.0-1.0
+          let hump = 4 * tempRatio * (1 - tempRatio); // Parabola peaking at 1.0 at 115C
+          // Peak multiplier derived from integrating 2500kJ/kg energy penalty over the band
+          apparentHeatMultiplier = 1 + (mc * 0.96 * hump);
+        }
+
+        let nodeAlpha = effectiveAlpha / apparentHeatMultiplier;
+        nextT[i] = temp + nodeAlpha * dt * (currentT[i+1] - 2 * temp + currentT[i-1]) / (dx * dx);
       }
       nextT[0] = currentBoundsT;
       nextT[N_NODES - 1] = currentBoundsT;

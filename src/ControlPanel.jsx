@@ -42,19 +42,45 @@ export function ControlPanel({ paramsA, paramsB, setParamsA, setParamsB, onInter
   return (
     <div className="control-panel">
       {/* Configurations */}
-      <div className="controls-group" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.25rem', width: '100%' }}>
-        <div className="input-group">
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <label>Initial Thickness: {paramsA.thicknessInches}in</label>
+      <div style={{ width: '100%', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.4rem', marginBottom: '0.4rem' }}>
+        <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.3rem', paddingLeft: '0.2rem' }}>
+          Wood Starting Conditions
+        </div>
+        <div className="controls-group" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.25rem', width: '100%' }}>
+          <div className="input-group">
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <label>Initial Thickness: {paramsA.thicknessInches}in</label>
+            </div>
+            <input type="range" name="thicknessInches" value={paramsA.thicknessInches} onChange={handleSharedChange} min="0.1" max="2" step="0.05" style={{ padding: 0 }} />
           </div>
-          <input type="range" name="thicknessInches" value={paramsA.thicknessInches} onChange={handleSharedChange} min="0.1" max="2" step="0.05" style={{ padding: 0 }} />
-        </div>
 
-        <div className="input-group">
-          <label>Initial Temp (°C)</label>
-          <input type="number" name="initWoodTemp" value={paramsA.initWoodTemp} onChange={handleSharedChange} />
+          <div className="input-group">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <label>Moisture Content: {paramsA.moistureContent ?? 0}%</label>
+              <button 
+                onClick={() => alert("Specific Heat Capacity Model:\n\nThis model incorporates an apparent specific heat capacity component. Instead of just modeling the sensible heat of wood and water, it adds a localized peak between 100°C and 120°C to simulate the energy absorbed during the desorption of bound water (representing the latent heat of vaporization).")} 
+                style={{ 
+                  background: 'none', border: '1px solid var(--accent-blue)', color: 'var(--accent-blue)', 
+                  borderRadius: '50%', width: '16px', height: '16px', fontSize: '10px', 
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0,
+                  marginLeft: '4px'
+                }}
+                title="View Heat Capacity Model Info"
+              >
+                i
+              </button>
+            </div>
+            <input type="range" name="moistureContent" value={paramsA.moistureContent ?? 0} onChange={handleSharedChange} min="0" max="30" step="1" style={{ padding: 0 }} />
+          </div>
+
+          <div className="input-group">
+            <label>Initial Temp (°C)</label>
+            <input type="number" name="initWoodTemp" value={paramsA.initWoodTemp} onChange={handleSharedChange} />
+          </div>
         </div>
-        
+      </div>
+
+      <div className="controls-group" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.25rem', width: '100%' }}>
         {!(paramsA.platenRamp && paramsA.platenRamp.active) && (
           <div className="input-group">
             <label style={{ color: 'var(--accent-blue)' }}>Platen A (°C)</label>

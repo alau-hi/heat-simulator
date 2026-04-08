@@ -11,8 +11,8 @@ function App() {
   const [scrubTime, setScrubTime] = useState(0);
   const [isScrubbing, setIsScrubbing] = useState(false);
 
-  const conf160 = { thicknessInches: 0.75, initWoodTemp: 80, platenTemp: 160, targetCoreTemp: globalTargetTemp, alpha: 0.18e-6 };
-  const conf170 = { thicknessInches: 0.75, initWoodTemp: 80, platenTemp: 170, targetCoreTemp: globalTargetTemp, alpha: 0.18e-6 };
+  const conf160 = { thicknessInches: 0.75, initWoodTemp: 80, platenTemp: 160, targetCoreTemp: globalTargetTemp, alpha: 0.18e-6, moistureContent: 8 };
+  const conf170 = { thicknessInches: 0.75, initWoodTemp: 80, platenTemp: 170, targetCoreTemp: globalTargetTemp, alpha: 0.18e-6, moistureContent: 8 };
 
   const compDef = { active: true, start: 120, stop: 180, ratio: 3 };
   const conf160Comp = { ...conf160, compression: compDef };

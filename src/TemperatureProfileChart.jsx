@@ -203,7 +203,18 @@ export function TemperatureProfileChart({ temperaturesA = [], temperaturesB = []
       </div>
 
       {/* Labels positioned off the static outer chamber */}
-      <div className="x-axis-labels" style={{ position: 'absolute', bottom: '-15px', width: '100%', display: 'flex', justifyContent: 'space-between' }}>
+      <div className="x-axis-labels" style={{ 
+        position: 'absolute', 
+        bottom: '-22px', 
+        left: '30px', 
+        width: 'calc(100% - 30px)', 
+        display: 'flex', 
+        justifyContent: 'space-between',
+        color: 'var(--text-main)',
+        fontSize: '0.75rem',
+        fontWeight: 'bold',
+        textShadow: '0px 1px 2px rgba(0,0,0,0.8)'
+      }}>
         <span>{minTemp}°C</span>
         <span>{Math.round((minTemp + maxTemp) / 2)}°C</span>
         <span>{maxTemp}°C</span>
