@@ -32,7 +32,9 @@ export function SimulationInstance({
   simDataB,
   globalScrubTime,
   isScrubbing,
-  onInteraction
+  onInteraction,
+  globalMinTemp,
+  globalMaxTemp
 }) {
   const paramsA = simDataA.params;
   const paramsB = simDataB.params;
@@ -51,8 +53,8 @@ export function SimulationInstance({
     (historyA.length > 0 && globalScrubTime >= historyA[historyA.length - 1].time) && 
     (historyB.length > 0 && globalScrubTime >= historyB[historyB.length - 1].time);
 
-  const minTemp = paramsA.initWoodTemp; 
-  const maxTemp = Math.max(paramsA.platenTemp, paramsB.platenTemp, paramsA.platenRamp?.endTemp || 0, paramsB.platenRamp?.endTemp || 0, 170); 
+  const minTemp = globalMinTemp !== undefined ? globalMinTemp : 0; 
+  const maxTemp = globalMaxTemp !== undefined ? globalMaxTemp : 200; 
 
   // Since structural physics are strictly shared, we just map out A's geometry
   const currentThickness = currentStateA.thickness;

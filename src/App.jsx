@@ -7,12 +7,13 @@ import './App.css';
 function App() {
   const [globalIsPlaying, setGlobalIsPlaying] = useState(false);
   const [globalTargetTemp, setGlobalTargetTemp] = useState(155);
+  const [showAssumptions, setShowAssumptions] = useState(false);
 
   const [scrubTime, setScrubTime] = useState(0);
   const [isScrubbing, setIsScrubbing] = useState(false);
 
-  const conf160 = { thicknessInches: 0.75, initWoodTemp: 80, platenTemp: 160, targetCoreTemp: globalTargetTemp, alpha: 0.18e-6, moistureContent: 8 };
-  const conf170 = { thicknessInches: 0.75, initWoodTemp: 80, platenTemp: 170, targetCoreTemp: globalTargetTemp, alpha: 0.18e-6, moistureContent: 8 };
+  const conf160 = { thicknessInches: 0.75, initWoodTemp: 80, platenTemp: 160, targetCoreTemp: globalTargetTemp, alpha: 0.166e-6, moistureContent: 8 };
+  const conf170 = { thicknessInches: 0.75, initWoodTemp: 80, platenTemp: 170, targetCoreTemp: globalTargetTemp, alpha: 0.166e-6, moistureContent: 8 };
 
   const compDef = { active: true, start: 120, stop: 180, ratio: 3 };
   const conf160Comp = { ...conf160, compression: compDef };
@@ -32,6 +33,16 @@ function App() {
   const sim6 = useHeatSimulation(confRampComp2);
 
   const sims = [sim1, sim2, sim3, sim4, sim5, sim6];
+
+  const globalMinTemp = Math.min(...sims.map(sim => sim.params.initWoodTemp || 0));
+  const globalMaxTemp = Math.max(...sims.flatMap(sim => {
+    const p = sim.params;
+    let max = p.platenTemp || 0;
+    if (p.platenRamp && p.platenRamp.active) {
+      max = Math.max(max, p.platenRamp.startTemp, p.platenRamp.endTemp);
+    }
+    return max;
+  }));
 
   // Map global target temp updates into all hooks instantaneously
   useEffect(() => {
@@ -100,9 +111,18 @@ function App() {
   return (
     <div className="app-container">
       <header className="global-header" style={{ padding: '0.5rem 1rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-        <div className="header-titles" style={{ minWidth: '150px' }}>
-          <h1>1D Heat Conduction</h1>
-          <p className="subtitle">HOT PRESS DYNAMICS</p>
+        <div className="header-titles" style={{ minWidth: '300px', flex: 1 }}>
+          <h1 style={{ marginBottom: '0.2rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            1D Heat Conduction Simulator
+            <button 
+              onClick={() => setShowAssumptions(true)}
+              style={{ fontSize: '0.65rem', padding: '0.2rem 0.6rem', border: '1px solid var(--border-color)', background: 'var(--bg-input)', color: 'var(--text-main)', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontWeight: 'bold' }}>
+              View Assumptions
+            </button>
+          </h1>
+          <p className="subtitle" style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: '1.4', maxWidth: '600px' }}>
+            A tool for analyzing the impact of platen temps, compression, and starting wood temps on the time it takes to get the center of a board up to the glass transition temp of lignin.
+          </p>
         </div>
         
         {/* Global Nav & Scrubber */}
@@ -161,10 +181,38 @@ function App() {
       </header>
 
       <main className="comparison-board">
-        <SimulationInstance title="Static Platen Offset" simDataA={sim1} simDataB={sim2} globalScrubTime={scrubTime} isScrubbing={isScrubbing} onInteraction={handleGlobalReset} />
-        <SimulationInstance title="Compressed Comparison" simDataA={sim3} simDataB={sim4} globalScrubTime={scrubTime} isScrubbing={isScrubbing} onInteraction={handleGlobalReset} />
-        <SimulationInstance title="Dynamic Platen Ramp + Compress" simDataA={sim5} simDataB={sim6} globalScrubTime={scrubTime} isScrubbing={isScrubbing} onInteraction={handleGlobalReset} />
+        <SimulationInstance title="Fixed Platens" simDataA={sim1} simDataB={sim2} globalScrubTime={scrubTime} isScrubbing={isScrubbing} onInteraction={handleGlobalReset} globalMinTemp={globalMinTemp} globalMaxTemp={globalMaxTemp} />
+        <SimulationInstance title="Compressing Platens" simDataA={sim3} simDataB={sim4} globalScrubTime={scrubTime} isScrubbing={isScrubbing} onInteraction={handleGlobalReset} globalMinTemp={globalMinTemp} globalMaxTemp={globalMaxTemp} />
+        <SimulationInstance title="Compressing + Temp-Ramping Platens" simDataA={sim5} simDataB={sim6} globalScrubTime={scrubTime} isScrubbing={isScrubbing} onInteraction={handleGlobalReset} globalMinTemp={globalMinTemp} globalMaxTemp={globalMaxTemp} />
       </main>
+
+      {showAssumptions && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.8)', zIndex: 1000, display: 'flex', justifyContent: 'center', alignItems: 'center', backdropFilter: 'blur(3px)' }}>
+          <div style={{ backgroundColor: 'var(--bg-panel)', padding: '2rem', borderRadius: 'var(--radius-md)', maxWidth: '850px', width: '90%', border: '1px solid var(--border-heavy)', position: 'relative', boxShadow: '0 10px 40px rgba(0,0,0,0.5)' }}>
+            <button 
+              onClick={() => setShowAssumptions(false)}
+              style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '1.2rem', cursor: 'pointer' }}>
+              ✕
+            </button>
+            <h3 style={{ fontSize: '1.2rem', color: 'var(--text-main)', margin: '0 0 1.5rem 0', textTransform: 'uppercase', letterSpacing: '1px' }}>
+              Key Thermodynamic Assumptions
+            </h3>
+            <ul style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: '1.6', paddingLeft: '1.2rem', margin: 0 }}>
+              <li style={{ marginBottom: '1rem' }}><strong>1D Heat Transfer:</strong> Computes heat flow exclusively across the thickness axis (face-to-face). Assumes an infinite planar slab where lateral/edge heat losses are strictly negligible.</li>
+              <li style={{ marginBottom: '1rem' }}><strong>Apparent Specific Heat Capacity:</strong> Simulates the prolonged latent heat of vaporization of bound moisture by applying localized, extreme elevations in the wood's apparent specific heat between 100°C and 120°C.</li>
+              <li style={{ marginBottom: '1rem' }}>
+                <strong>Conduction Only:</strong> Relies purely on the Explicit Finite Difference Method applied to Fourier's law. Internal convective effects driven by mobilized steam/vapor migration are not factored in.
+                <div style={{ marginTop: '0.6rem', padding: '0.6rem', backgroundColor: 'rgba(255, 179, 193, 0.1)', borderLeft: '3px solid #ffb3c1', borderRadius: '0 4px 4px 0' }}>
+                  <span style={{ color: '#ffcdb2', fontWeight: 'bold' }}>Alex's Note:</span> <span style={{ color: 'var(--text-main)' }}>Heat transfer after 100-120°C is reached could actually be much faster, as steam migration impacts could become a significant-to-dominant factor!</span>
+                </div>
+              </li>
+              <li>
+                <strong>Poplar Calibration &amp; Compression:</strong> The baseline explicitly derives from <strong>Yellow Poplar</strong> macro-properties: Density <span style={{ fontFamily: '"Cambria Math", "Computer Modern", "Times New Roman", serif', fontStyle: 'italic', fontSize: '1.05em' }}>ρ</span> ≈ <span style={{ fontFamily: '"Cambria Math", "Computer Modern", "Times New Roman", serif', fontSize: '1.05em' }}>450 kg/m³</span>, Specific Heat <span style={{ fontFamily: '"Cambria Math", "Computer Modern", "Times New Roman", serif', fontStyle: 'italic', fontSize: '1.05em' }}>C<sub>p</sub></span> ≈ <span style={{ fontFamily: '"Cambria Math", "Computer Modern", "Times New Roman", serif', fontSize: '1.05em' }}>1600 J/kg·K</span> (with residual core moisture), and transverse Thermal Conductivity <span style={{ fontFamily: '"Cambria Math", "Computer Modern", "Times New Roman", serif', fontStyle: 'italic', fontSize: '1.05em' }}>k</span> ≈ <span style={{ fontFamily: '"Cambria Math", "Computer Modern", "Times New Roman", serif', fontSize: '1.05em' }}>0.12 W/m·K</span>. This sets an uncompressed baseline thermal diffusivity (<span style={{ fontFamily: '"Cambria Math", "Computer Modern", "Times New Roman", serif', fontStyle: 'italic', fontSize: '1.05em' }}>α</span>) of precisely <code style={{ fontFamily: '"Cambria Math", "Computer Modern", "Times New Roman", serif', fontSize: '1.1em' }}>0.166 × 10<sup>-6</sup> m²/s</code>. As structural density scales inversely with mechanical compression, the simulator empirically doubles this diffusivity for every 3x volume reduction to account for eliminated insulating air pockets.
+              </li>
+            </ul>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
