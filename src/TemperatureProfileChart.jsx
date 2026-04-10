@@ -225,9 +225,9 @@ export function TemperatureProfileChart({ temperaturesA = [], temperaturesB = []
         fontWeight: 'bold',
         textShadow: '0px 1px 2px rgba(0,0,0,0.8)'
       }}>
-        <span>{minTemp}°C</span>
-        <span>{Math.round((minTemp + maxTemp) / 2)}°C</span>
-        <span>{maxTemp}°C</span>
+        <span style={{ color: '#00d4ff' }}>{minTemp}°C</span>
+        <span style={{ color: '#b054fc' }}>{Math.round((minTemp + maxTemp) / 2)}°C</span>
+        <span style={{ color: '#ff2a5f' }}>{maxTemp}°C</span>
       </div>
     </div>
   );

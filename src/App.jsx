@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { useHeatSimulation } from './useHeatSimulation';
 import { SimulationInstance } from './SimulationInstance';
 import { formatTime } from './utils';
@@ -12,8 +12,18 @@ function App() {
   const [scrubTime, setScrubTime] = useState(0);
   const [isScrubbing, setIsScrubbing] = useState(false);
 
-  const conf160 = { thicknessInches: 0.75, initWoodTemp: 80, platenTemp: 160, targetCoreTemp: globalTargetTemp, alpha: 0.166e-6, moistureContent: 8 };
-  const conf170 = { thicknessInches: 0.75, initWoodTemp: 80, platenTemp: 170, targetCoreTemp: globalTargetTemp, alpha: 0.166e-6, moistureContent: 8 };
+  const [baseDensity, setBaseDensity] = useState(450);
+  const [baseSpecificHeat, setBaseSpecificHeat] = useState(1600);
+  const [baseConductivity, setBaseConductivity] = useState(0.12);
+
+  const calculatedAlpha = useMemo(() => {
+    const d = Math.max(1, baseDensity);
+    const cp = Math.max(1, baseSpecificHeat);
+    return baseConductivity / (d * cp);
+  }, [baseDensity, baseSpecificHeat, baseConductivity]);
+
+  const conf160 = { thicknessInches: 0.75, initWoodTemp: 80, platenTemp: 160, targetCoreTemp: globalTargetTemp, alpha: calculatedAlpha, moistureContent: 8 };
+  const conf170 = { thicknessInches: 0.75, initWoodTemp: 80, platenTemp: 170, targetCoreTemp: globalTargetTemp, alpha: calculatedAlpha, moistureContent: 8 };
 
   const compDef = { active: true, start: 120, stop: 180, ratio: 3 };
   const conf160Comp = { ...conf160, compression: compDef };
@@ -44,13 +54,13 @@ function App() {
     return max;
   }));
 
-  // Map global target temp updates into all hooks instantaneously
+  // Map global target temp and dynamically calculated alpha updates into all hooks instantaneously
   useEffect(() => {
     sims.forEach(sim => {
-      sim.setParams(prev => ({ ...prev, targetCoreTemp: globalTargetTemp }));
+      sim.setParams(prev => ({ ...prev, targetCoreTemp: globalTargetTemp, alpha: calculatedAlpha }));
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [globalTargetTemp]);
+  }, [globalTargetTemp, calculatedAlpha]);
 
   const maxSimTime = Math.max(0, ...sims.map(sim => {
     return sim.history && sim.history.length > 0 ? sim.history[sim.history.length - 1].time : 0;
@@ -180,6 +190,33 @@ function App() {
         </div>
       </header>
 
+      {/* Global Material Thermodynamics Settings */}
+      <div style={{ padding: '0.4rem 1rem', background: 'rgba(20,22,32,0.95)', borderBottom: '1px solid var(--border-color)', display: 'flex', gap: '1.25rem', alignItems: 'center', flexWrap: 'wrap', fontSize: '0.75rem', zIndex: 90, position: 'relative' }}>
+        <div style={{ color: 'var(--text-muted)', fontWeight: 'bold', textTransform: 'uppercase', fontSize: '0.65rem' }}>Core Thermodynamics</div>
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <label style={{ color: 'var(--accent-orange)' }}>Density (<span style={{ fontFamily: '"Cambria Math", "Computer Modern", "Times New Roman", serif', fontStyle: 'italic' }}>ρ</span>) kg/m³:</label>
+          <input type="number" step="10" value={baseDensity} onChange={(e) => { setBaseDensity(parseFloat(e.target.value) || 0); handleGlobalReset(); }} style={{ width: '60px', background: 'var(--bg-input)', color: '#fff', border: '1px solid var(--border-heavy)', borderRadius: '3px', padding: '2px 4px' }} />
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <label style={{ color: 'var(--accent-orange)' }}>Specific Heat (<span style={{ fontFamily: '"Cambria Math", "Computer Modern", "Times New Roman", serif', fontStyle: 'italic' }}>C<sub>p</sub></span>) J/kg·K:</label>
+          <input type="number" step="50" value={baseSpecificHeat} onChange={(e) => { setBaseSpecificHeat(parseFloat(e.target.value) || 0); handleGlobalReset(); }} style={{ width: '65px', background: 'var(--bg-input)', color: '#fff', border: '1px solid var(--border-heavy)', borderRadius: '3px', padding: '2px 4px' }} />
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <label style={{ color: 'var(--accent-orange)' }}>Transverse Conductivity (<span style={{ fontFamily: '"Cambria Math", "Computer Modern", "Times New Roman", serif', fontStyle: 'italic' }}>k</span>) W/m·K:</label>
+          <input type="number" step="0.01" value={baseConductivity} onChange={(e) => { setBaseConductivity(parseFloat(e.target.value) || 0); handleGlobalReset(); }} style={{ width: '60px', background: 'var(--bg-input)', color: '#fff', border: '1px solid var(--border-heavy)', borderRadius: '3px', padding: '2px 4px' }} />
+        </div>
+
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem', borderLeft: '1px solid var(--border-heavy)', paddingLeft: '1rem' }}>
+          <span style={{ color: '#00e676', fontWeight: 'bold', textTransform: 'uppercase', fontSize: '0.65rem' }}>Calculated Thermal Diffusivity (<span style={{ fontFamily: '"Cambria Math", "Computer Modern", "Times New Roman", serif', fontStyle: 'italic', textTransform: 'none' }}>α</span>)</span>
+          <code style={{ fontFamily: '"Cambria Math", "Computer Modern", "Times New Roman", serif', fontSize: '0.9rem', color: '#00e676', backgroundColor: 'rgba(0, 230, 118, 0.1)', padding: '2px 6px', borderRadius: '4px' }}>
+            {(calculatedAlpha * 1e6).toFixed(3)} × 10<sup>-6</sup> m²/s
+          </code>
+        </div>
+      </div>
+
       <main className="comparison-board">
         <SimulationInstance title="Fixed Platens" simDataA={sim1} simDataB={sim2} globalScrubTime={scrubTime} isScrubbing={isScrubbing} onInteraction={handleGlobalReset} globalMinTemp={globalMinTemp} globalMaxTemp={globalMaxTemp} />
         <SimulationInstance title="Compressing Platens" simDataA={sim3} simDataB={sim4} globalScrubTime={scrubTime} isScrubbing={isScrubbing} onInteraction={handleGlobalReset} globalMinTemp={globalMinTemp} globalMaxTemp={globalMaxTemp} />
@@ -207,7 +244,7 @@ function App() {
                 </div>
               </li>
               <li>
-                <strong>Poplar Calibration &amp; Compression:</strong> The baseline derives from <strong>Yellow Poplar</strong> macro-properties: Density <span style={{ fontFamily: '"Cambria Math", "Computer Modern", "Times New Roman", serif', fontStyle: 'italic', fontSize: '1.05em' }}>ρ</span> ≈ <span style={{ fontFamily: '"Cambria Math", "Computer Modern", "Times New Roman", serif', fontSize: '1.05em' }}>450 kg/m³</span>, Specific Heat <span style={{ fontFamily: '"Cambria Math", "Computer Modern", "Times New Roman", serif', fontStyle: 'italic', fontSize: '1.05em' }}>C<sub>p</sub></span> ≈ <span style={{ fontFamily: '"Cambria Math", "Computer Modern", "Times New Roman", serif', fontSize: '1.05em' }}>1600 J/kg·K</span> (with residual core moisture), and transverse Thermal Conductivity <span style={{ fontFamily: '"Cambria Math", "Computer Modern", "Times New Roman", serif', fontStyle: 'italic', fontSize: '1.05em' }}>k</span> ≈ <span style={{ fontFamily: '"Cambria Math", "Computer Modern", "Times New Roman", serif', fontSize: '1.05em' }}>0.12 W/m·K</span>. This sets an uncompressed baseline thermal diffusivity (<span style={{ fontFamily: '"Cambria Math", "Computer Modern", "Times New Roman", serif', fontStyle: 'italic', fontSize: '1.05em' }}>α</span>) of <code style={{ fontFamily: '"Cambria Math", "Computer Modern", "Times New Roman", serif', fontSize: '1.1em' }}>0.166 × 10<sup>-6</sup> m²/s</code>. As structural density scales inversely with mechanical compression, the simulator doubles this diffusivity for every 3x volume reduction to account for eliminated insulating air pockets.
+                <strong>Thermodynamic Material Properties:</strong> The baseline thermal diffusivity (<span style={{ fontFamily: '"Cambria Math", "Computer Modern", "Times New Roman", serif', fontStyle: 'italic', fontSize: '1.05em' }}>α</span>) used in the Finite Difference Matrix is continuously derived from the user-defined Density (<span style={{ fontFamily: '"Cambria Math", "Computer Modern", "Times New Roman", serif', fontStyle: 'italic', fontSize: '1.05em' }}>ρ</span>), Specific Heat (<span style={{ fontFamily: '"Cambria Math", "Computer Modern", "Times New Roman", serif', fontStyle: 'italic', fontSize: '1.05em' }}>C<sub>p</sub></span>), and transverse Thermal Conductivity (<span style={{ fontFamily: '"Cambria Math", "Computer Modern", "Times New Roman", serif', fontStyle: 'italic', fontSize: '1.05em' }}>k</span>). As structural density scales inversely with mechanical compression, the simulator instantaneously scales up this initial diffusivity, doubling it for every 3x volume reduction to safely simulate the progressive elimination of internal insulating air pockets.
               </li>
             </ul>
           </div>
