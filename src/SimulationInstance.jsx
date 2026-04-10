@@ -48,6 +48,16 @@ export function SimulationInstance({
   const safeIndexB = findClosestHistoryIndex(historyB, globalScrubTime);
   const currentStateB = historyB[safeIndexB] || { time: 0, temps: [], thickness: paramsB.thicknessInches };
 
+  const timeAt90C = useMemo(() => {
+    if (!historyA || historyA.length === 0) return null;
+    for (let frame of historyA) {
+      if (Math.min(...frame.temps) >= 90) {
+        return frame.time;
+      }
+    }
+    return null;
+  }, [historyA]);
+
   // Assume both simulations have identical targetCoreTemp
   const isFinished = 
     (historyA.length > 0 && globalScrubTime >= historyA[historyA.length - 1].time) && 
@@ -76,6 +86,7 @@ export function SimulationInstance({
         setParamsA={simDataA.setParams}
         setParamsB={simDataB.setParams}
         onInteraction={onInteraction} 
+        timeAt90C={timeAt90C}
       />
 
       <div className="instance-dashboard">

@@ -1,7 +1,7 @@
 import React from 'react';
 import { formatTime } from './utils';
 
-export function ControlPanel({ paramsA, paramsB, setParamsA, setParamsB, onInteraction }) {
+export function ControlPanel({ paramsA, paramsB, setParamsA, setParamsB, onInteraction, timeAt90C }) {
   
   const handleSharedChange = (e) => {
     const { name, value } = e.target;
@@ -253,6 +253,39 @@ export function ControlPanel({ paramsA, paramsB, setParamsA, setParamsB, onInter
                   zIndex: 1,
                   boxShadow: '0 0 5px rgba(0,230,118,0.5)'
                 }} />
+
+                {/* 90C Core Marker */}
+                {timeAt90C !== null && (
+                  <>
+                    <div style={{
+                      position: 'absolute',
+                      top: '6px',
+                      left: `${(timeAt90C / 600) * 100}%`,
+                      width: '4px',
+                      height: '12px',
+                      backgroundColor: 'var(--accent-orange)',
+                      zIndex: 2,
+                      pointerEvents: 'none',
+                      borderRadius: '2px',
+                      boxShadow: '0 0 4px rgba(255, 171, 0, 0.8)',
+                      transform: 'translateX(-50%)'
+                    }} title={`Core hits 90°C at ${formatTime(timeAt90C)}`} />
+                    <div style={{
+                      position: 'absolute',
+                      top: '20px',
+                      left: `${(timeAt90C / 600) * 100}%`,
+                      transform: 'translateX(-50%)',
+                      fontSize: '0.5rem',
+                      fontWeight: 'bold',
+                      color: 'var(--accent-orange)',
+                      zIndex: 2,
+                      pointerEvents: 'none',
+                      whiteSpace: 'nowrap'
+                    }}>
+                      [90°C]
+                    </div>
+                  </>
+                )}
                 
                 {/* Range Inputs */}
                 <input type="range" name="start" value={paramsA.compression.start} 

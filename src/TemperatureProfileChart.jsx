@@ -38,6 +38,16 @@ export function TemperatureProfileChart({ temperaturesA = [], temperaturesB = []
   const len = Math.max(temperaturesA.length, temperaturesB.length);
   const safeIndices = temperaturesA.length > 0 ? temperaturesA.map((_, i) => i) : [];
 
+  // Calculate dynamic wood darkness based on physical compaction 
+  // compressionScale is 0.0 uncompressed, rising to ~0.66 at a 3x compression ratio.
+  const compressionScale = initialThickness > 0 ? (initialThickness - currentThickness) / initialThickness : 0;
+  
+  const r = Math.max(25, Math.round(190 - (compressionScale * 206))); 
+  const g = Math.max(12, Math.round(130 - (compressionScale * 147)));  
+  const b = Math.max(0, Math.round(70 - (compressionScale * 87)));   
+  const a = Math.min(1.0, 0.45 + (compressionScale * 0.7)); 
+  const dynamicWoodColor = `rgba(${r}, ${g}, ${b}, ${a})`;
+
   return (
     <div className="chart-container" style={{ width: '100%', position: 'relative', paddingLeft: '30px' }}>
       
@@ -90,7 +100,7 @@ export function TemperatureProfileChart({ temperaturesA = [], temperaturesB = []
               </linearGradient>
             </defs>
 
-            <rect x="0" y="0" width="100" height="100" fill="rgba(0,0,0,0.03)" />
+            <rect x="0" y="0" width="100" height="100" fill={dynamicWoodColor} style={{ transition: 'fill 0.05s linear' }} />
 
             <line x1="0" y1="0" x2="0" y2="100" className="grid-line" vectorEffect="non-scaling-stroke" />
             <line x1="50" y1="0" x2="50" y2="100" className="grid-line" vectorEffect="non-scaling-stroke" />
