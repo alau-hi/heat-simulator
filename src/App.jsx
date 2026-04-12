@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { useHeatSimulation } from './useHeatSimulation';
 import { SimulationInstance } from './SimulationInstance';
-import { formatTime } from './utils';
+import { formatTime, findClosestHistoryIndex } from './utils';
 import './App.css';
 
 function App() {
@@ -118,6 +118,94 @@ function App() {
 
   const isAllFinished = scrubTime >= maxSimTime && maxSimTime > 0;
 
+  const exportAllToCSV = () => {
+    let csvContent = "";
+    
+    // 1. Write Assumptions Metadata
+    csvContent += "WOOD THERMODYNAMIC SIMULATOR EXPORT\n";
+    csvContent += "----------------------------------------\n";
+    csvContent += `Base Density (kg/m3),${baseDensity}\n`;
+    csvContent += `Specific Heat (J/kgK),${baseSpecificHeat}\n`;
+    csvContent += `Thermal Conductivity (W/mK),${baseConductivity}\n`;
+    csvContent += `Calculated Thermal Diffusivity (m2/s),${calculatedAlpha}\n`;
+    csvContent += `Global Target Core Temp (C),${globalTargetTemp}\n`;
+    csvContent += "----------------------------------------\n\n";
+
+    // 2. Prepare headers for the huge wide format array
+    const simDefinitions = [
+        { name: "Fixed_Base", data: sim1.history || [], params: sim1.params },
+        { name: "Fixed_High", data: sim2.history || [], params: sim2.params },
+        { name: "Compressing_Base", data: sim3.history || [], params: sim3.params },
+        { name: "Compressing_High", data: sim4.history || [], params: sim4.params },
+        { name: "CompressingRamp_Base", data: sim5.history || [], params: sim5.params },
+        { name: "CompressingRamp_High", data: sim6.history || [], params: sim6.params }
+    ];
+
+    csvContent += "SCENARIO ASSUMPTIONS\n";
+    csvContent += "Scenario,Initial Thickness (in),Init Wood Temp (C),Target Core Temp (C),Moisture Content (%),Static Platen Temp (C),Platen Ramp Start (C),Platen Ramp End (C),Ramp Duration (s),Compression Start (s),Compression Stop (s),Compression Ratio\n";
+    simDefinitions.forEach(sim => {
+        let p = sim.params || {};
+        let rampStart = (p.platenRamp && p.platenRamp.active) ? p.platenRamp.startTemp : 'N/A';
+        let rampEnd = (p.platenRamp && p.platenRamp.active) ? p.platenRamp.endTemp : 'N/A';
+        let rampDur = (p.platenRamp && p.platenRamp.active) ? p.platenRamp.duration : 'N/A';
+        let statPlaten = (!p.platenRamp || !p.platenRamp.active) ? p.platenTemp : 'N/A';
+        
+        let compStart = (p.compression && p.compression.active) ? p.compression.start : 'N/A';
+        let compStop = (p.compression && p.compression.active) ? p.compression.stop : 'N/A';
+        let compRatio = (p.compression && p.compression.active) ? p.compression.ratio : 'N/A';
+
+        csvContent += `${sim.name},${p.thicknessInches},${p.initWoodTemp},${p.targetCoreTemp},${p.moistureContent},${statPlaten},${rampStart},${rampEnd},${rampDur},${compStart},${compStop},${compRatio}\n`;
+    });
+    csvContent += "----------------------------------------\n\n";
+
+    const nNodes = 20;
+    
+    let header = ["Time_seconds"];
+    // For each simulation, we output its thickness and node temps
+    simDefinitions.forEach(sim => {
+        header.push(`${sim.name}_Thickness_inches`);
+        for (let i = 0; i < nNodes; i++) {
+            header.push(`${sim.name}_Node_${i}_C`);
+        }
+    });
+    
+    csvContent += header.join(",") + "\n";
+    
+    // 3. Determine maximum bounds across all 6 sims
+    let maxTimeBound = 0;
+    simDefinitions.forEach(sim => {
+        if (sim.data.length > 0) {
+            maxTimeBound = Math.max(maxTimeBound, sim.data[sim.data.length - 1].time);
+        }
+    });
+    
+    // 4. Generate rows sampled every 5 seconds
+    let rows = [];
+    for (let t = 0; t <= Math.ceil(maxTimeBound); t += 5) {
+        let row = [t];
+        simDefinitions.forEach(sim => {
+            let idx = findClosestHistoryIndex(sim.data, t);
+            let state = sim.data[idx] || { thickness: 0, temps: Array(nNodes).fill(0) };
+            row.push(state.thickness.toFixed(4));
+            state.temps.forEach(temp => row.push(temp.toFixed(2)));
+        });
+        rows.push(row.join(","));
+    }
+    
+    csvContent += rows.join("\n");
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `heat_simulation_Full_Export.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="app-container">
       <header className="global-header" style={{ padding: '0.5rem 1rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
@@ -176,7 +264,7 @@ function App() {
           />
         </div>
 
-        <div className="global-actions" style={{ maxWidth: '320px', alignItems: 'center' }}>
+        <div className="global-actions" style={{ maxWidth: '400px', alignItems: 'center' }}>
           <button 
             className={`btn btn-play ${globalIsPlaying ? 'active' : ''}`}
             onClick={() => setGlobalIsPlaying(!globalIsPlaying)}
@@ -186,6 +274,19 @@ function App() {
           </button>
           <button className="btn btn-reset" onClick={handleGlobalReset}>
             Reset
+          </button>
+          <button 
+            className="btn" 
+            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: '#e2e8f0', color: '#0f172a', fontWeight: 'bold', fontSize: '0.75rem', padding: '0.5rem 0.8rem', border: '1px solid #cbd5e1' }}
+            onClick={exportAllToCSV}
+            title="Download global matrix with thermodynamic metadata"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Export All
           </button>
         </div>
       </header>

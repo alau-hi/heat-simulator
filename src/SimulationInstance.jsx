@@ -1,31 +1,7 @@
 import React, { useMemo } from 'react';
 import { ControlPanel } from './ControlPanel';
 import { TemperatureProfileChart } from './TemperatureProfileChart';
-import { formatTime } from './utils';
-
-// Fast binary search to find closest history frame safely
-function findClosestHistoryIndex(history, targetTime) {
-  if (!history || history.length === 0) return 0;
-  if (targetTime <= history[0].time) return 0;
-  if (targetTime >= history[history.length - 1].time) return history.length - 1;
-
-  let left = 0;
-  let right = history.length - 1;
-  let best = 0;
-
-  while (left <= right) {
-    let mid = Math.floor((left + right) / 2);
-    if (history[mid].time <= targetTime) {
-      best = mid;
-      left = mid + 1;
-    } else {
-      right = mid - 1;
-    }
-  }
-  return best;
-}
-
-
+import { formatTime, findClosestHistoryIndex } from './utils';
 export function SimulationInstance({ 
   title, 
   simDataA,
@@ -69,11 +45,72 @@ export function SimulationInstance({
   // Since structural physics are strictly shared, we just map out A's geometry
   const currentThickness = currentStateA.thickness;
 
+  const exportToCSV = () => {
+    const nNodes = historyA[0]?.temps.length || 20;
+    
+    let header = ["Time_seconds"];
+    header.push("Thickness_A_inches");
+    for(let i = 0; i < nNodes; i++) header.push(`A_Node_${i}_C`);
+    header.push("Thickness_B_inches");
+    for(let i = 0; i < nNodes; i++) header.push(`B_Node_${i}_C`);
+    
+    let rows = [header.join(",")];
+    
+    const maxTimeA = historyA.length > 0 ? historyA[historyA.length - 1].time : 0;
+    const maxTimeB = historyB.length > 0 ? historyB[historyB.length - 1].time : 0;
+    const maxTime = Math.max(maxTimeA, maxTimeB);
+    
+    for (let t = 0; t <= Math.ceil(maxTime); t += 5) {
+      let row = [t];
+      
+      let idxA = findClosestHistoryIndex(historyA, t);
+      let stateA = historyA[idxA] || { thickness: 0, temps: Array(nNodes).fill(0) };
+      row.push(stateA.thickness.toFixed(4));
+      stateA.temps.forEach(temp => row.push(temp.toFixed(2)));
+      
+      let idxB = findClosestHistoryIndex(historyB, t);
+      let stateB = historyB[idxB] || { thickness: 0, temps: Array(nNodes).fill(0) };
+      row.push(stateB.thickness.toFixed(4));
+      stateB.temps.forEach(temp => row.push(temp.toFixed(2)));
+      
+      rows.push(row.join(","));
+    }
+    
+    const csvContent = rows.join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    let safeTitle = title.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+    link.setAttribute("download", `heat_simulation_${safeTitle}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="simulation-instance" style={{ borderTop: `1px solid rgba(255,255,255,0.2)` }}>
       
       <div className="instance-header" style={{ borderBottomColor: 'var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 style={{ color: 'var(--text-main)' }}>{title}</h2>
+        <h2 style={{ color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          {title}
+          <button 
+            onClick={exportToCSV}
+            style={{
+              background: 'transparent', border: '1px solid var(--border-heavy)', color: 'var(--text-muted)', fontSize: '0.6rem', padding: '2px 6px', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', textTransform: 'uppercase'
+            }}
+            title="Export comparative simulation history to CSV"
+          >
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Export CSV
+          </button>
+        </h2>
         <div style={{ fontSize: '0.65rem', display: 'flex', gap: '0.5rem', fontWeight: 'bold' }}>
           <span style={{ color: 'var(--accent-blue)' }}>A (Base)</span>
           <span style={{ color: 'var(--accent-orange)' }}>B (High)</span>
