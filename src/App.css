@@ -158,6 +158,48 @@ h1, h2, h3, h4, h5, h6 {
   border-color: var(--text-main);
 }
 
+.btn-export {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background: #e2e8f0;
+  color: #0f172a;
+  font-weight: 800;
+  font-size: 0.75rem;
+  padding: 0.5rem 0.8rem;
+  border: 1px solid #cbd5e1;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.btn-export:hover {
+  background: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(255, 255, 255, 0.3);
+}
+
+.btn-export-sm {
+  background: transparent;
+  border: 1px solid var(--border-heavy);
+  color: var(--text-muted);
+  font-size: 0.6rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  text-transform: uppercase;
+  transition: all 0.2s;
+}
+
+.btn-export-sm:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-main);
+  border-color: var(--text-main);
+}
+
 /* Custom Range Sliders */
 input[type=range] {
   appearance: none;
@@ -279,11 +321,13 @@ input[type=range].dual-thumb::-webkit-slider-thumb {
   padding: 0.3rem 0.4rem;
   border-radius: var(--radius-sm);
   border: 1px solid transparent;
-  transition: border-color 0.2s;
+  transition: all 0.2s;
 }
 
-.input-group:hover {
-  border-color: var(--border-heavy);
+.input-group:hover, .input-group:focus-within {
+  border-color: var(--accent-blue);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 8px rgba(0, 212, 255, 0.25);
 }
 
 .input-group label {
@@ -306,6 +350,24 @@ input[type=range].dual-thumb::-webkit-slider-thumb {
   font-size: 0.85rem;
   outline: none;
   font-weight: 700;
+}
+
+.header-input {
+  background: var(--bg-input);
+  color: #fff;
+  border: 1px solid var(--border-heavy);
+  border-radius: 3px;
+  padding: 2px 4px;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  font-family: 'Inter', monospace;
+  font-weight: bold;
+  outline: none;
+}
+
+.header-input:hover, .header-input:focus {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
 }
 
 
@@ -364,7 +426,7 @@ input[type=range].dual-thumb::-webkit-slider-thumb {
   box-shadow: 0 0 10px rgba(0,0,0,0.5) inset;
 }
 
-svg {
+.svg-wrapper svg {
   width: 100%;
   height: 100%;
 }

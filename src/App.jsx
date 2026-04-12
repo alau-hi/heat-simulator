@@ -276,8 +276,7 @@ function App() {
             Reset
           </button>
           <button 
-            className="btn" 
-            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: '#e2e8f0', color: '#0f172a', fontWeight: 'bold', fontSize: '0.75rem', padding: '0.5rem 0.8rem', border: '1px solid #cbd5e1' }}
+            className="btn btn-export" 
             onClick={exportAllToCSV}
             title="Download global matrix with thermodynamic metadata"
           >
@@ -297,17 +296,17 @@ function App() {
         
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <label style={{ color: 'var(--accent-orange)' }}>Density (<span style={{ fontFamily: '"Cambria Math", "Computer Modern", "Times New Roman", serif', fontStyle: 'italic' }}>ρ</span>) kg/m³:</label>
-          <input type="number" step="10" value={baseDensity} onChange={(e) => { setBaseDensity(parseFloat(e.target.value) || 0); handleGlobalReset(); }} style={{ width: '60px', background: 'var(--bg-input)', color: '#fff', border: '1px solid var(--border-heavy)', borderRadius: '3px', padding: '2px 4px' }} />
+          <input className="header-input" type="number" step="10" value={baseDensity} onChange={(e) => { setBaseDensity(parseFloat(e.target.value) || 0); handleGlobalReset(); }} style={{ width: '60px' }} />
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <label style={{ color: 'var(--accent-orange)' }}>Specific Heat (<span style={{ fontFamily: '"Cambria Math", "Computer Modern", "Times New Roman", serif', fontStyle: 'italic' }}>C<sub>p</sub></span>) J/kg·K:</label>
-          <input type="number" step="50" value={baseSpecificHeat} onChange={(e) => { setBaseSpecificHeat(parseFloat(e.target.value) || 0); handleGlobalReset(); }} style={{ width: '65px', background: 'var(--bg-input)', color: '#fff', border: '1px solid var(--border-heavy)', borderRadius: '3px', padding: '2px 4px' }} />
+          <input className="header-input" type="number" step="50" value={baseSpecificHeat} onChange={(e) => { setBaseSpecificHeat(parseFloat(e.target.value) || 0); handleGlobalReset(); }} style={{ width: '65px' }} />
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <label style={{ color: 'var(--accent-orange)' }}>Transverse Conductivity (<span style={{ fontFamily: '"Cambria Math", "Computer Modern", "Times New Roman", serif', fontStyle: 'italic' }}>k</span>) W/m·K:</label>
-          <input type="number" step="0.01" value={baseConductivity} onChange={(e) => { setBaseConductivity(parseFloat(e.target.value) || 0); handleGlobalReset(); }} style={{ width: '60px', background: 'var(--bg-input)', color: '#fff', border: '1px solid var(--border-heavy)', borderRadius: '3px', padding: '2px 4px' }} />
+          <input className="header-input" type="number" step="0.01" value={baseConductivity} onChange={(e) => { setBaseConductivity(parseFloat(e.target.value) || 0); handleGlobalReset(); }} style={{ width: '60px' }} />
         </div>
 
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem', borderLeft: '1px solid var(--border-heavy)', paddingLeft: '1rem' }}>

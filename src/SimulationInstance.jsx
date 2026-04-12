@@ -97,10 +97,8 @@ export function SimulationInstance({
         <h2 style={{ color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           {title}
           <button 
+            className="btn-export-sm"
             onClick={exportToCSV}
-            style={{
-              background: 'transparent', border: '1px solid var(--border-heavy)', color: 'var(--text-muted)', fontSize: '0.6rem', padding: '2px 6px', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', textTransform: 'uppercase'
-            }}
             title="Export comparative simulation history to CSV"
           >
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
